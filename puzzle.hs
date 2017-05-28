@@ -35,10 +35,6 @@ getElement elements row column
 	| column >= (length (elements!!row)) = Nothing
 	| otherwise = Just ((elements!!row)!!column)
 
-
-temp row column= 
-	getNeighbors ["acgf", "gfbea", "edac", "acgbe", "fbed"] row column
-
 put :: Char -> [[Char]] -> Int -> Int -> [[Char]]
 put _ [] _ _ = error "Index out of bound!"
 put element (x:xs) 0 column = ((putInRow element x column):xs)
@@ -72,3 +68,8 @@ checkIfAnyCollisionInRow :: [[Char]] -> [Char] -> Int -> Int -> Bool
 checkIfAnyCollisionInRow _ [] _ _ = False
 checkIfAnyCollisionInRow map (x:xs) row column = not (allDifferent (getNeighbors map row column)) ||  (checkIfAnyCollisionInRow map xs row (column+1))
 
+isGameEnd :: [[Char]] -> Bool
+isGameEnd map = isPuzzleComplete map && not (isAnyCollision map)
+
+temp row column= 
+	getNeighbors ["acgf", "gfbea", "edac", "acgbe", "fbed"] row column
