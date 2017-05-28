@@ -37,13 +37,13 @@ getElement elements row column
 
 put :: Char -> [[Char]] -> Int -> Int -> [[Char]]
 put _ [] _ _ = error "Index out of bound!"
-put element (x:xs) 0 column = ((putInRow element x column):xs)
-put element (x:xs) n column = (x:(put element xs (n-1) column))
+put element (x:xs) 0 column = (putInRow element x column) : xs
+put element (x:xs) n column = x : (put element xs (n-1) column)
 
 putInRow :: Char -> [Char] -> Int -> [Char]
 putInRow _ [] _ = error "Index out of bound!"
 putInRow element (x:xs) 0 = (element:xs)
-putInRow element (x:xs) n = (x:(putInRow element xs (n-1)))  
+putInRow element (x:xs) n = x : (putInRow element xs (n-1)) 
 
 isRowFull :: [Char] -> Bool
 isRowFull [] = True
@@ -55,7 +55,7 @@ isPuzzleComplete (x:xs) = (isRowFull x) && (isPuzzleComplete xs)
 
 allDifferent :: [Maybe Char] -> Bool
 allDifferent []     = True
-allDifferent (x:xs) = ((x == Nothing) ||  (x `notElem` xs)) && allDifferent xs 
+allDifferent (x:xs) = ((x == Nothing) || (x == Just '.') ||  (x `notElem` xs)) && allDifferent xs 
 
 isAnyCollision :: [[Char]] -> Bool
 isAnyCollision x = isAnyCollisionJob x x 0
@@ -71,5 +71,57 @@ checkIfAnyCollisionInRow map (x:xs) row column = not (allDifferent (getNeighbors
 isGameEnd :: [[Char]] -> Bool
 isGameEnd map = isPuzzleComplete map && not (isAnyCollision map)
 
+putInFirstEmpty :: [[Char]] -> Char -> [[Char]]
+putInFirstEmpty [] _ = []
+putInFirstEmpty (x:xs) value  
+	| isRowFull x =
+		x : (putInFirstEmpty xs value)
+	| otherwise =
+		(putInFirstEmptyInRow  x value) : xs
+
+putInFirstEmptyInRow :: [Char] -> Char -> [Char]
+putInFirstEmptyInRow [] _ = []
+putInFirstEmptyInRow (x:xs) value  
+	| x == '.' =
+		value : xs
+	| otherwise =
+		x : (putInFirstEmptyInRow xs value)
+		
+solve :: [[Char]] -> [[Char]]
+
+solve puzzle =
+	let
+		puzzleA = solve (putInFirstEmpty puzzle 'a')
+		puzzleB = solve (putInFirstEmpty puzzle 'b')
+		puzzleC = solve (putInFirstEmpty puzzle 'c')
+		puzzleD = solve (putInFirstEmpty puzzle 'd')
+		puzzleE = solve (putInFirstEmpty puzzle 'e')
+		puzzleF = solve (putInFirstEmpty puzzle 'f')
+		puzzleG = solve (putInFirstEmpty puzzle 'g')
+	in 
+		if (isAnyCollision puzzle) || (isGameEnd puzzle) 
+		then puzzle 
+		else if isGameEnd puzzleA 
+		then puzzleA
+		else if isGameEnd puzzleB 
+		then puzzleB
+		else if isGameEnd puzzleC 
+		then puzzleC
+		else if isGameEnd puzzleD 
+		then puzzleD
+		else if isGameEnd puzzleE 
+		then puzzleE
+		else if isGameEnd puzzleF 
+		then puzzleF
+		else puzzleG
+
+play :: [[Char]] -> [[Char]]
+play map  
+	| not (isGameEnd result) =
+		error "game has no solution"
+	| otherwise =
+		result
+	where result = solve map
+	
 temp row column= 
-	getNeighbors ["acgf", "gfbea", "edac", "acgbe", "fbed"] row column
+	getNeighbors ["gbfc", "edagb", "fced", "agbfc", "edag"] row column
