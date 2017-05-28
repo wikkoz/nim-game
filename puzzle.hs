@@ -37,4 +37,38 @@ getElement elements row column
 
 
 temp row column= 
-	getNeighbors ["abc", "defg", "asd", "dsdf"] row column
+	getNeighbors ["acgf", "gfbea", "edac", "acgbe", "fbed"] row column
+
+put :: Char -> [[Char]] -> Int -> Int -> [[Char]]
+put _ [] _ _ = error "Index out of bound!"
+put element (x:xs) 0 column = ((putInRow element x column):xs)
+put element (x:xs) n column = (x:(put element xs (n-1) column))
+
+putInRow :: Char -> [Char] -> Int -> [Char]
+putInRow _ [] _ = error "Index out of bound!"
+putInRow element (x:xs) 0 = (element:xs)
+putInRow element (x:xs) n = (x:(putInRow element xs (n-1)))  
+
+isRowFull :: [Char] -> Bool
+isRowFull [] = True
+isRowFull (x:xs) = (x /= '.') && (isRowFull xs)
+
+isPuzzleComplete :: [[Char]] -> Bool
+isPuzzleComplete [] = True
+isPuzzleComplete (x:xs) = (isRowFull x) && (isPuzzleComplete xs)
+
+allDifferent :: [Maybe Char] -> Bool
+allDifferent []     = True
+allDifferent (x:xs) = ((x == Nothing) ||  (x `notElem` xs)) && allDifferent xs 
+
+isAnyCollision :: [[Char]] -> Bool
+isAnyCollision x = isAnyCollisionJob x x 0
+
+isAnyCollisionJob :: [[Char]] -> [[Char]] -> Int -> Bool
+isAnyCollisionJob _ [] _ = False
+isAnyCollisionJob map (x:xs) row = (checkIfAnyCollisionInRow map x row 0) || (isAnyCollisionJob map xs (row+1))
+
+checkIfAnyCollisionInRow :: [[Char]] -> [Char] -> Int -> Int -> Bool
+checkIfAnyCollisionInRow _ [] _ _ = False
+checkIfAnyCollisionInRow map (x:xs) row column = not (allDifferent (getNeighbors map row column)) ||  (checkIfAnyCollisionInRow map xs row (column+1))
+
