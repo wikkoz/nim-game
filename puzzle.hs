@@ -1,6 +1,9 @@
+import System.IO
+
 checkLine :: String -> Int -> [Char]
 checkLine input expectedLength 
-	| (length input) /= expectedLength = error "Line has wrong number of elements"
+	| (length input) /= expectedLength = error (input ++ " has wrong number of elements. Expected: "
+	 ++ (show expectedLength))
 	| otherwise = input
 
 
@@ -89,8 +92,16 @@ putInFirstEmptyInRow (x:xs) value
 		
 solve :: [[Char]] -> [[Char]]
 
-solve puzzle =
-	let
+solve puzzle 
+	| (isAnyCollision puzzle) || (isGameEnd puzzle) = puzzle
+	| isGameEnd puzzleA = puzzleA
+	| isGameEnd puzzleB = puzzleB
+	| isGameEnd puzzleC = puzzleC
+	| isGameEnd puzzleD = puzzleD
+	| isGameEnd puzzleE = puzzleE
+	| isGameEnd puzzleF = puzzleF
+	| otherwise = puzzleG
+	where
 		puzzleA = solve (putInFirstEmpty puzzle 'a')
 		puzzleB = solve (putInFirstEmpty puzzle 'b')
 		puzzleC = solve (putInFirstEmpty puzzle 'c')
@@ -98,30 +109,34 @@ solve puzzle =
 		puzzleE = solve (putInFirstEmpty puzzle 'e')
 		puzzleF = solve (putInFirstEmpty puzzle 'f')
 		puzzleG = solve (putInFirstEmpty puzzle 'g')
-	in 
-		if (isAnyCollision puzzle) || (isGameEnd puzzle) 
-		then puzzle 
-		else if isGameEnd puzzleA 
-		then puzzleA
-		else if isGameEnd puzzleB 
-		then puzzleB
-		else if isGameEnd puzzleC 
-		then puzzleC
-		else if isGameEnd puzzleD 
-		then puzzleD
-		else if isGameEnd puzzleE 
-		then puzzleE
-		else if isGameEnd puzzleF 
-		then puzzleF
-		else puzzleG
 
-play :: [[Char]] -> [[Char]]
+play :: [String] ->  IO()
 play map  
 	| not (isGameEnd result) =
 		error "game has no solution"
 	| otherwise =
-		result
+		draw result True
 	where result = solve map
-	
-temp row column= 
-	getNeighbors ["gbfc", "edagb", "fced", "agbfc", "edag"] row column
+
+draw :: [[Char]] -> Bool -> IO()
+draw [] _ = return ()
+draw (x:xs) indent = do
+	drawLine x indent
+	draw xs (not indent)
+
+drawLine :: [Char] -> Bool -> IO()
+drawLine row indent
+	| indent = putStrLn (" " ++ line)
+	| otherwise = putStrLn line
+	where
+		line = concat (map (\w -> w : " ") row)
+
+data Puzzle = Plaster [String] deriving Read
+
+start :: IO()
+start = do
+	handle <- openFile "test" ReadMode
+	contents <- hGetContents handle
+	let (Plaster puzzle) = read contents
+	play (readPuzzle puzzle)
+	hClose handle
