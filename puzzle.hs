@@ -1,4 +1,5 @@
 import System.IO
+import System.Directory
 
 checkLine :: String -> Int -> [Char]
 checkLine input expectedLength 
@@ -37,16 +38,6 @@ getElement elements row column
 	| row >= (length elements) = Nothing
 	| column >= (length (elements!!row)) = Nothing
 	| otherwise = Just ((elements!!row)!!column)
-
-put :: Char -> [[Char]] -> Int -> Int -> [[Char]]
-put _ [] _ _ = error "Index out of bound!"
-put element (x:xs) 0 column = (putInRow element x column) : xs
-put element (x:xs) n column = x : (put element xs (n-1) column)
-
-putInRow :: Char -> [Char] -> Int -> [Char]
-putInRow _ [] _ = error "Index out of bound!"
-putInRow element (x:xs) 0 = (element:xs)
-putInRow element (x:xs) n = x : (putInRow element xs (n-1)) 
 
 isRowFull :: [Char] -> Bool
 isRowFull [] = True
@@ -133,9 +124,18 @@ drawLine row indent
 
 data Puzzle = Plaster [String] deriving Read
 
-start :: IO()
-start = do
-	handle <- openFile "test" ReadMode
+getFilePath :: IO String
+getFilePath = do
+	putStrLn "Provide filepath: "
+	path <- getLine
+	exist <- (doesFileExist path)
+	if not exist
+		then error "file do not exist!"
+		else return path
+		
+main = do
+	filepath <- getFilePath
+	handle <- openFile filepath ReadMode
 	contents <- hGetContents handle
 	let (Plaster puzzle) = read contents
 	play (readPuzzle puzzle)
